@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Игра: Секретный адрес (7 класс)</title>
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #111a33;
+      --card: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --text: #e9ecf1;
+      --muted: rgba(233,236,241,0.75);
+      --accent: rgba(80,180,255,0.35);
+      --ok: rgba(60, 230, 170, 0.18);
+      --bad: rgba(255, 90, 120, 0.18);
+      --shadow: 0 14px 40px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(80,180,255,0.18), transparent 60%),
+        radial-gradient(1000px 600px at 90% 30%, rgba(255,90,120,0.12), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+    header {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .titlebox {
+      display: grid; gap: 4px;
+    }
+    .titlebox h1 { margin: 0; font-size: clamp(22px, 3.6vw, 34px); letter-spacing: 0.2px; }
+    .titlebox p { margin: 0; color: var(--muted); }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .progress {
+      height: 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      margin-bottom: 16px;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: rgba(80,180,255,0.55);
+      transition: width 260ms ease;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 320px 1fr; }
+    }
+
+    .panel, .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel { padding: 14px; }
+    .panel h2 { margin: 0 0 10px; font-size: 16px; color: var(--muted); font-weight: 700; letter-spacing: 0.3px; }
+    .nav {
+      display: grid; gap: 8px;
+    }
+    .nav button {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 80ms ease, background 140ms ease, border-color 140ms ease;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.08); }
+    .nav button:active { transform: translateY(1px); }
+    .nav button[aria-current="true"] {
+      border-color: rgba(80,180,255,0.55);
+      background: rgba(80,180,255,0.12);
+    }
+    .nav small { color: var(--muted); }
+
+    .card { padding: 18px; }
+    .card h2 { margin: 0 0 6px; font-size: 20px; }
+    .card .subtitle { margin: 0 0 12px; color: var(--muted); }
+
+    .dossier {
+      border-radius: 16px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.22);
+      padding: 12px;
+      margin: 10px 0 14px;
+    }
+    pre {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.35);
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+    }
+
+    label { display: block; margin: 10px 0 6px; color: var(--muted); font-size: 13px; }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus, textarea:focus {
+      border-color: rgba(80,180,255,0.55);
+      box-shadow: 0 0 0 4px rgba(80,180,255,0.12);
+    }
+    textarea { min-height: 110px; resize: vertical; }
+
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 80ms ease, background 140ms ease;
+      user-select: none;
+    }
+    .btn:hover { background: rgba(255,255,255,0.12); }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary {
+      border-color: rgba(80,180,255,0.42);
+      background: rgba(80,180,255,0.18);
+    }
+    .btn.primary:hover { background: rgba(80,180,255,0.24); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .hint {
+      border-left: 3px solid rgba(80,180,255,0.55);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(80,180,255,0.08);
+      color: var(--muted);
+      margin-top: 10px;
+      display: none;
+    }
+
+    .msg {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      display: none;
+    }
+    .msg.ok { background: var(--ok); border-color: rgba(60,230,170,0.32); display: block; }
+    .msg.bad { background: var(--bad); border-color: rgba(255,90,120,0.32); display: block; }
+
+    .footer {
+      margin-top: 14px;
+      font-size: 13px;
+      color: rgba(233,236,241,0.65);
+    }
+
+    .kbd {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      color: rgba(233,236,241,0.88);
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="titlebox">
+        <h1>🕶 Игра «Секретный адрес»</h1>
+        <p>7 класс • Адресация в интернете • Разгадай досье и восстанови адреса</p>
+      </div>
+      <div class="row">
+        <div class="chip" id="chipStep">📁 Досье: <b id="stepLabel">Введение</b></div>
+        <div class="chip">💡 Подсказка: кнопка «Показать подсказку»</div>
+      </div>
+    </header>
+
+    <div class="progress" aria-label="Прогресс">
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <div class="grid">
+      <aside class="panel">
+        <h2>Навигация</h2>
+        <div class="nav" id="nav"></div>
+
+        <div class="footer">
+          <div>Совет: можно проходить по порядку.</div>
+          <div>На телефоне меню тоже работает.</div>
+        </div>
+      </aside>
+
+      <main class="card" id="app" aria-live="polite"></main>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // -----------------------
+  // Безопасная проверка: ответы не выводятся на экран.
+  // ВАЖНО: в любом HTML/JS ученик технически может увидеть код,
+  // если откроет исходник. Для "железной" защиты нужен сервер.
+  // Но для школьной игры этого обычно достаточно.
+  // -----------------------
+
+  const app = document.getElementById("app");
+  const nav = document.getElementById("nav");
+  const bar = document.getElementById("bar");
+  const stepLabel = document.getElementById("stepLabel");
+
+  const STORAGE_KEY = "secretAddressGame_v1";
+
+  const state = loadState();
+
+  const steps = [
+    {
+      id: "intro",
+      name: "Введение",
+      icon: "🗝",
+      progress: 0,
+      render: () => `
+        <h2>🗝 Введение</h2>
+        <p class="subtitle">Ты — интернет-агент. У тебя 5 досье. В каждом спрятан адрес сайта.</p>
+
+        <div class="dossier">
+          <p><b>Правила:</b></p>
+          <ul>
+            <li>Читай задание → вводи ответ → нажимай <span class="kbd">Проверить</span>.</li>
+            <li>Если сложно — жми <span class="kbd">Показать подсказку</span>.</li>
+            <li>Когда досье закрыто ✅ — переходи дальше.</li>
+          </ul>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" data-go="d1">▶ Начать</button>
+          <button class="btn" id="resetAll">🔁 Сбросить прогресс</button>
+        </div>
+
+        <div class="msg" id="msgIntro"></div>
+      `,
+      wire: () => {
+        document.getElementById("resetAll").addEventListener("click", () => {
+          if (!confirm("Сбросить прогресс на этом устройстве?")) return;
+          localStorage.removeItem(STORAGE_KEY);
+          location.reload();
+        });
+      }
+    },
+
+    {
+      id: "d1",
+      name: "Досье №1",
+      icon: "📁",
+      progress: 20,
+      render: () => `
+        <h2>📁 Досье №1 — «Потерянные буквы»</h2>
+        <p class="subtitle">Восстанови название сайта и его адрес.</p>
+
+        <div class="dossier">
+          <pre>p i a w e i d i k</pre>
+        </div>
+
+        <p><b>Задание:</b> напиши адрес сайта (можно без https://).</p>
+
+        <label>Твой ответ</label>
+        <input id="in1" placeholder="Например: site.com" autocomplete="off"/>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="check1">Проверить</button>
+          <button class="btn" id="hint1">Показать подсказку</button>
+          <button class="btn primary" id="next1" data-go="d2" disabled>Дальше ➜</button>
+        </div>
+
+        <div class="hint" id="hintBox1">💡 Подсказка: это самый известный сайт-энциклопедия, где читают статьи.</div>
+        <div class="msg" id="msg1"></div>
+      `,
+      wire: () => {
+        const in1 = document.getElementById("in1");
+        const msg = document.getElementById("msg1");
+        const next = document.getElementById("next1");
+        const hintBtn = document.getElementById("hint1");
+        const hintBox = document.getElementById("hintBox1");
+
+        hintBtn.addEventListener("click", () => hintBox.style.display = "block");
+
+        document.getElementById("check1").addEventListener("click", () => {
+          const v = normalize(in1.value);
+
+          // Упрощённая проверка: достаточно, чтобы было "wikipedia"
+          // и присутствовала доменная часть.
+          const ok = v.includes("wikipedia") && (v.includes(".") || v.includes("://"));
+
+          setMsg(msg, ok,
+            ok ? "✅ Принято! Досье №1 закрыто." : "❌ Не похоже на адрес. Подумай про сайт-энциклопедию."
+          );
+
+          if (ok) {
+            state.done.d1 = true;
+            saveState();
+            next.disabled = false;
+            refreshNav();
+          }
+        });
+
+        if (state.done.d1) next.disabled = false;
+      }
+    },
+
+    {
+      id: "d2",
+      name: "Досье №2",
+      icon: "📁",
+      progress: 40,
+      render: () => `
+        <h2>📁 Досье №2 — «Разбитый адрес»</h2>
+        <p class="subtitle">Собери адрес, убрав лишние пробелы.</p>
+
+        <div class="dossier">
+          <pre>h t t p s : / / y o u t u b e . c o m</pre>
+        </div>
+
+        <p><b>Задание:</b> напиши правильный адрес.</p>
+
+        <label>Твой ответ</label>
+        <input id="in2" placeholder="Например: https://site.com" autocomplete="off"/>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="check2">Проверить</button>
+          <button class="btn" id="hint2">Показать подсказку</button>
+          <button class="btn primary" id="next2" data-go="d3" disabled>Дальше ➜</button>
+        </div>
+
+        <div class="hint" id="hintBox2">💡 Подсказка: это сайт с видео. В адресе обязательно есть <b>https://</b>.</div>
+        <div class="msg" id="msg2"></div>
+      `,
+      wire: () => {
+        const in2 = document.getElementById("in2");
+        const msg = document.getElementById("msg2");
+        const next = document.getElementById("next2");
+        const hintBtn = document.getElementById("hint2");
+        const hintBox = document.getElementById("hintBox2");
+
+        hintBtn.addEventListener("click", () => hintBox.style.display = "block");
+
+        document.getElementById("check2").addEventListener("click", () => {
+          const v = normalizeUrl(in2.value);
+
+          // Лёгкая проверка: должно начинаться с https:// и содержать youtube и .com
+          const ok = v.startsWith("https://") && v.includes("youtube") && (v.endsWith(".com") || v.includes(".com/"));
+
+          setMsg(msg, ok,
+            ok ? "✅ Отлично! Досье №2 закрыто." : "❌ Пока нет. Проверь: https:// + название + .com"
+          );
+
+          if (ok) {
+            state.done.d2 = true;
+            saveState();
+            next.disabled = false;
+            refreshNav();
+          }
+        });
+
+        if (state.done.d2) next.disabled = false;
+      }
+    },
+
+    {
+      id: "d3",
+      name: "Досье №3",
+      icon: "📁",
+      progress: 60,
+      render: () => `
+        <h2>📁 Досье №3 — «Лишний символ»</h2>
+        <p class="subtitle">Найди лишний символ и исправь адрес.</p>
+
+        <div class="dossier">
+          <pre>https://school@com</pre>
+        </div>
+
+        <p><b>Задание:</b> напиши правильный адрес.</p>
+
+        <label>Твой ответ</label>
+        <input id="in3" placeholder="Например: https://site.com" autocomplete="off"/>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="check3">Проверить</button>
+          <button class="btn" id="hint3">Показать подсказку</button>
+          <button class="btn primary" id="next3" data-go="d4" disabled>Дальше ➜</button>
+        </div>
+
+        <div class="hint" id="hintBox3">💡 Подсказка: в адресах сайтов символ <b>@</b> обычно не используется.</div>
+        <div class="msg" id="msg3"></div>
+      `,
+      wire: () => {
+        const in3 = document.getElementById("in3");
+        const msg = document.getElementById("msg3");
+        const next = document.getElementById("next3");
+        const hintBtn = document.getElementById("hint3");
+        const hintBox = document.getElementById("hintBox3");
+
+        hintBtn.addEventListener("click", () => hintBox.style.display = "block");
+
+        document.getElementById("check3").addEventListener("click", () => {
+          const v = normalizeUrl(in3.value);
+
+          // Проверка простая: https://school.com (без @)
+          const ok = v.startsWith("https://") && v.includes("school") && v.includes(".com") && !v.includes("@");
+
+          setMsg(msg, ok,
+            ok ? "✅ Верно! Досье №3 закрыто." : "❌ Проверь: лишний символ должен исчезнуть, и должна быть точка перед com."
+          );
+
+          if (ok) {
+            state.done.d3 = true;
+            saveState();
+            next.disabled = false;
+            refreshNav();
+          }
+        });
+
+        if (state.done.d3) next.disabled = false;
+      }
+    },
+
+    {
+      id: "d4",
+      name: "Досье №4",
+      icon: "📁",
+      progress: 80,
+      render: () => `
+        <h2>📁 Досье №4 — «Секретный код»</h2>
+        <p class="subtitle">По описанию угадай сайт и напиши его адрес.</p>
+
+        <div class="dossier">
+          <pre>[видео] + [международный] + [.com]</pre>
+        </div>
+
+        <p><b>Задание:</b> напиши адрес сайта (можно с https:// или без).</p>
+
+        <label>Твой ответ</label>
+        <input id="in4" placeholder="Например: site.com" autocomplete="off"/>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="check4">Проверить</button>
+          <button class="btn" id="hint4">Показать подсказку</button>
+          <button class="btn primary" id="next4" data-go="d5" disabled>Дальше ➜</button>
+        </div>
+
+        <div class="hint" id="hintBox4">💡 Подсказка: самый известный видеосайт в мире.</div>
+        <div class="msg" id="msg4"></div>
+      `,
+      wire: () => {
+        const in4 = document.getElementById("in4");
+        const msg = document.getElementById("msg4");
+        const next = document.getElementById("next4");
+        const hintBtn = document.getElementById("hint4");
+        const hintBox = document.getElementById("hintBox4");
+
+        hintBtn.addEventListener("click", () => hintBox.style.display = "block");
+
+        document.getElementById("check4").addEventListener("click", () => {
+          const v = normalizeUrl(in4.value);
+
+          // Упрощённо: достаточно, чтобы содержалось "youtube" и .com
+          const ok = v.includes("youtube") && v.includes(".com");
+
+          setMsg(msg, ok,
+            ok ? "✅ Отлично! Досье №4 закрыто." : "❌ Пока нет. Подумай про международный сайт с видео и домен .com."
+          );
+
+          if (ok) {
+            state.done.d4 = true;
+            saveState();
+            next.disabled = false;
+            refreshNav();
+          }
+        });
+
+        if (state.done.d4) next.disabled = false;
+      }
+    },
+
+    {
+      id: "d5",
+      name: "Досье №5",
+      icon: "🏁",
+      progress: 100,
+      render: () => `
+        <h2>🏁 Досье №5 — «Ты агент»</h2>
+        <p class="subtitle">Финальная миссия: придумай своё секретное сообщение и адрес.</p>
+
+        <div class="dossier">
+          <p><b>Сделай так:</b></p>
+          <ol>
+            <li>Придумай сайт (о чём он?).</li>
+            <li>Напиши адрес этого сайта.</li>
+            <li>Напиши секретное сообщение, чтобы другой смог угадать.</li>
+          </ol>
+        </div>
+
+        <label>Твой текст (можно в 2–4 строки)</label>
+        <textarea id="finalText" placeholder="Пример: [игры] + [подростки] + [.com]&#10;Адрес: https://..."></textarea>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn primary" id="saveFinal">💾 Сохранить</button>
+          <button class="btn" id="copyFinal">📋 Скопировать</button>
+          <button class="btn" id="restart">🔁 Сначала</button>
+        </div>
+
+        <div class="msg" id="msg5"></div>
+
+        <div class="footer">
+          Учителю: ученик может скопировать текст и отправить в чат/почту.\n
+        </div>
+      `,
+      wire: () => {
+        const t = document.getElementById("finalText");
+        const msg = document.getElementById("msg5");
+
+        const saved = state.finalText || "";
+        t.value = saved;
+
+        document.getElementById("saveFinal").addEventListener("click", () => {
+          state.finalText = t.value || "";
+          saveState();
+          setMsg(msg, true, "💾 Сохранено на этом устройстве.");
+          refreshNav();
+        });
+
+        document.getElementById("copyFinal").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(t.value || "");
+            setMsg(msg, true, "📋 Скопировано! Можно отправить учителю.");
+          } catch {
+            setMsg(msg, false, "Не получилось скопировать. Выдели текст и скопируй вручную.");
+          }
+        });
+
+        document.getElementById("restart").addEventListener("click", () => {
+          go("intro");
+        });
+      }
+    }
+  ];
+
+  // ---------- UI helpers ----------
+  function setMsg(el, ok, text) {
+    el.className = "msg " + (ok ? "ok" : "bad");
+    el.textContent = text;
+  }
+
+  function normalize(s) {
+    return (s || "").trim().toLowerCase().replace(/\s+/g, "");
+  }
+
+  function normalizeUrl(s) {
+    let v = (s || "").trim().toLowerCase().replace(/\s+/g, "");
+    // исправим типичные ошибки слэшей
+    v = v.replace(/^https\/\//, "https://").replace(/^http\/\//, "http://");
+    return v;
+  }
+
+  function loadState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { done: {}, finalText: "" };
+    } catch {
+      return { done: {}, finalText: "" };
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function refreshNav() {
+    nav.innerHTML = steps.map(s => {
+      const done = isDone(s.id);
+      const current = (s.id === state.current);
+      const label = `${s.icon} ${s.name}`;
+      const right = done ? "✅" : "";
+      return `
+        <button type="button" data-go="${s.id}" aria-current="${current ? "true" : "false"}">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div>${label}</div>
+            <div>${right}</div>
+          </div>
+          <small>${navHint(s.id)}</small>
+        </button>
+      `;
+    }).join("");
+
+    nav.querySelectorAll("[data-go]").forEach(b => {
+      b.addEventListener("click", () => go(b.getAttribute("data-go")));
+    });
+  }
+
+  function navHint(id) {
+    if (id === "intro") return "правила игры";
+    if (id === "d1") return "восстанови энциклопедию";
+    if (id === "d2") return "собери адрес без пробелов";
+    if (id === "d3") return "убери лишний символ";
+    if (id === "d4") return "угадай по коду";
+    if (id === "d5") return "создай своё сообщение";
+    return "";
+  }
+
+  function isDone(id) {
+    if (id === "intro") return true;
+    if (id === "d5") return Boolean(state.finalText && state.finalText.trim().length > 0);
+    return Boolean(state.done[id]);
+  }
+
+  function go(id) {
+    const step = steps.find(s => s.id === id) || steps[0];
+    state.current = step.id;
+    saveState();
+
+    stepLabel.textContent = step.name;
+    bar.style.width = step.progress + "%";
+    app.innerHTML = step.render();
+
+    // wire buttons for this step
+    app.querySelectorAll("[data-go]").forEach(b => {
+      b.addEventListener("click", () => go(b.getAttribute("data-go")));
+    });
+
+    if (step.wire) step.wire();
+    refreshNav();
+  }
+
+  // start
+  go(state.current || "intro");
+})();
+</script>
+</body>
+</html>
